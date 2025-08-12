@@ -1,3 +1,4 @@
+// src/App.tsx
 import React, { useState } from 'react';
 import './App.scss';
 import { GoodsList } from './GoodsList';
@@ -7,6 +8,17 @@ import { getAll, get5First, getRedGoods } from './api/goods';
 
 export const App: React.FC = () => {
   const [goods, setGoods] = useState<Good[] | null>(null);
+  const [error, setError] = useState<string | null>(null);
+
+  const loadGoods = (fetchFn: () => Promise<Good[]>) => {
+    setError(null);
+    fetchFn()
+      .then(setGoods)
+      .catch(err => {
+        setError(err.message || 'Something went wrong');
+        setGoods([]);
+      });
+  };
 
   return (
     <div className="App">
@@ -15,9 +27,7 @@ export const App: React.FC = () => {
       <button
         type="button"
         data-cy="all-button"
-        onClick={() => {
-          getAll().then(setGoods);
-        }}
+        onClick={() => loadGoods(getAll)}
       >
         Load all goods
       </button>
@@ -25,9 +35,7 @@ export const App: React.FC = () => {
       <button
         type="button"
         data-cy="first-five-button"
-        onClick={() => {
-          get5First().then(setGoods);
-        }}
+        onClick={() => loadGoods(get5First)}
       >
         Load 5 first goods
       </button>
@@ -35,14 +43,26 @@ export const App: React.FC = () => {
       <button
         type="button"
         data-cy="red-button"
-        onClick={() => {
-          getRedGoods().then(setGoods);
-        }}
+        onClick={() => loadGoods(getRedGoods)}
       >
         Load red goods
       </button>
 
-      <GoodsList goods={goods} />
+      {}
+      {error && (
+        <p className="App__error" data-cy="error-message">
+          {error}
+        </p>
+      )}
+
+      {}
+      {goods && goods.length === 0 && !error && (
+        <p className="App__empty" data-cy="empty-message">
+          No goods to display
+        </p>
+      )}
+
+      <GoodsList goods={goods ?? []} />
     </div>
   );
 };
